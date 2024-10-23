@@ -17,7 +17,7 @@
 # Modify by icyfenix@gmail.com
 # Base on JetBrains Projector (https://github.com/JetBrains/projector-server)
 
-FROM icyfenix/openjdk-build-environment:jdk15 AS jdkRepo
+FROM rainbow-jdk-bundle AS jdkRepo
 
 ENV JDK_DIR /home/projector-user/jdk
 ADD jdk-source $JDK_DIR
@@ -30,9 +30,9 @@ RUN true \
    && set -x \
 # Make configuration for linux-x86-slowdebug:
    && chmod +x ./configure \
-   && ./configure --with-boot-jdk=/usr/lib/jvm/openjdk-15-jdk --with-debug-level=slowdebug --disable-warnings-as-errors --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --with-version-opt=icyfenix.cn\
+   && ./configure --with-boot-jdk=/usr/lib/jvm/openjdk-21-jdk --with-debug-level=slowdebug --disable-warnings-as-errors --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --with-version-opt=icyfenix.cn\
 # Make compilation database: 
-   && make make compile-commands \
+   && make make compile-commands CONF=linux-x86_64-server-slowdebug \
 # Copy compile_commands.json to the root of this project
    && cp $JDK_DIR/build/linux-x86_64-server-slowdebug/compile_commands.json $JDK_DIR
 
@@ -47,7 +47,7 @@ ARG downloadUrl
 RUN wget -q $downloadUrl -O - | tar -xz
 RUN find . -maxdepth 1 -type d -name * -execdir mv {} /ide \;
 
-FROM amazoncorretto:11 as projectorGradleBuilder
+FROM openjdk:11 as projectorGradleBuilder
 
 ENV PROJECTOR_DIR /projector
 
@@ -55,8 +55,8 @@ ENV PROJECTOR_DIR /projector
 ADD projector-server $PROJECTOR_DIR/projector-server
 WORKDIR $PROJECTOR_DIR/projector-server
 ARG buildGradle
-RUN if [ "$buildGradle" = "true" ]; then ./gradlew clean; else echo "Skipping gradle build"; fi
-RUN if [ "$buildGradle" = "true" ]; then ./gradlew :projector-server:distZip; else echo "Skipping gradle build"; fi
+RUN if [ "$buildGradle" = "true" ]; then ./gradlew clean --debug; else echo "Skipping gradle build"; fi
+RUN if [ "$buildGradle" = "true" ]; then ./gradlew :projector-server:distZip --debug; else echo "Skipping gradle build"; fi
 
 FROM debian AS projectorStaticFiles
 
@@ -71,15 +71,15 @@ COPY --from=ideDownloader /ide $PROJECTOR_DIR/ide
 # copy projector files to the container:
 ADD openjdk-for-dummies/static $PROJECTOR_DIR
 # copy projector:
-COPY --from=projectorGradleBuilder $PROJECTOR_DIR/projector-server/projector-server/build/distributions/projector-server-1.0-SNAPSHOT.zip $PROJECTOR_DIR
+COPY --from=projectorGradleBuilder $PROJECTOR_DIR/projector-server/projector-server/build/distributions/projector-server-1.8.1.zip $PROJECTOR_DIR
 # prepare IDE - apply projector-server:
-RUN unzip $PROJECTOR_DIR/projector-server-1.0-SNAPSHOT.zip
-RUN rm $PROJECTOR_DIR/projector-server-1.0-SNAPSHOT.zip
-RUN mv projector-server-1.0-SNAPSHOT $PROJECTOR_DIR/ide/projector-server
+RUN unzip $PROJECTOR_DIR/projector-server-1.8.1.zip
+RUN rm $PROJECTOR_DIR/projector-server-1.8.1.zip
+RUN mv projector-server-1.8.1 $PROJECTOR_DIR/ide/projector-server
 RUN mv $PROJECTOR_DIR/ide-projector-launcher.sh $PROJECTOR_DIR/ide/bin
 RUN chmod 644 $PROJECTOR_DIR/ide/projector-server/lib/*
 
-FROM debian:10
+FROM ubuntu:22.04
 
 RUN true \
 # Any command which returns non-zero exit code will cause this shell script to exit immediately:
@@ -137,7 +137,7 @@ RUN true \
     && chmod +x $PROJECTOR_DIR/ide/bin/ide-projector-launcher.sh
 
 ENV JDK_DIR /home/projector-user/jdk
-ENV BOOT_JDK_DIR /usr/lib/jvm/openjdk-15-jdk
+ENV BOOT_JDK_DIR /usr/lib/jvm/openjdk-21-jdk
 COPY --from=jdkRepo $JDK_DIR $JDK_DIR
 COPY --from=jdkRepo $BOOT_JDK_DIR $BOOT_JDK_DIR
 

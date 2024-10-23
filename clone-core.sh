@@ -20,4 +20,4 @@ set -e # Any command which returns non-zero exit code will cause this shell scri
 set -x # Activate debugging to show execution details: all commands will be printed before execution
 
 git clone https://github.com/JetBrains/projector-server.git ../projector-server
-git clone https://github.com/openjdk/jdk15.git ../jdk-source
+git clone https://github.com/openjdk/jdk21.git ../jdk-source

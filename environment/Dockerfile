@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:22.04
 
 MAINTAINER IcyFenix (from https://icyfenix.cn)
 
@@ -21,5 +21,6 @@ VOLUME /dist
 VOLUME /bootstrap
 
 ADD build.sh /build.sh
+RUN chmod +x /build.sh
 
 CMD /build.sh

@@ -23,4 +23,4 @@ containerName=${1:-projector-idea-c}
 downloadUrl=${2:-https://download.jetbrains.com/cpp/CLion-2020.3.2.tar.gz}
 
 # build container:
-DOCKER_BUILDKIT=0 docker build --progress=plain -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" -f Dockerfile ..
+DOCKER_BUILDKIT=0 docker build -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" -f Dockerfile ..

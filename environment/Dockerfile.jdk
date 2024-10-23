@@ -1,0 +1,13 @@
+FROM ubuntu:22.04
+
+MAINTAINER yangjian
+
+RUN \
+  apt-get update && \
+  apt-get install -y \
+    libxt-dev zip pkg-config libx11-dev libxext-dev build-essential \
+    autoconf file libxrandr-dev libfontconfig1-dev\
+    libxrender-dev libxtst-dev libasound2-dev libcups2-dev libfreetype6-dev && \
+  rm -rf /var/lib/apt/lists/*
+
+ADD jdk-dist/jdk /usr/lib/jvm/openjdk-21-jdk
